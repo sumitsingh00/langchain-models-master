@@ -1,22 +1,35 @@
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
+# from langchain.schema import HumanMessage
+from dotenv import load_dotenv
 import os
 
-# ✅ Set environment variables (optional)
-os.environ["OPENAI_API_KEY"] = "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"
-os.environ["OPENAI_BASE_URL"] = "https://openrouter.ai/api/v1"
+# Load variables from .env
+load_dotenv()
 
-# ✅ Create ChatOpenAI instance for OpenRouter
+# Fetch environment variables
+api_key = os.getenv("OPENAI_API_KEY")
+api_base = os.getenv("OPENAI_BASE_URL")
+referer = os.getenv("HTTP_REFERER")
+title = os.getenv("X_TITLE")
+
+# Ensure required env vars are present
+if not api_key or not api_base:
+    raise Exception("Missing OPENAI_API_KEY or OPENAI_BASE_URL in .env")
+
+# Create the ChatOpenAI client
 llm = ChatOpenAI(
-    model="openai/gpt-3.5-turbo-instruct",   # Or "gpt-3.5-turbo" for chat models
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_base=os.environ["OPENAI_BASE_URL"],
+    model="openai/gpt-3.5-turbo-instruct",
+    openai_api_key=api_key,
+    openai_api_base=api_base,
+    default_headers={
+        "HTTP-Referer": referer,
+        "X-Title": title,
+    }
 )
 
-# ✅ Ask a question
-messages = [HumanMessage(content="What is the meaning of life?")]
-response = llm.invoke(messages)
 
-# ✅ Output the result
+# Run the model
+response = llm.invoke("What is the meaning of life?")
+
+# Print the result
 print(response.content)
